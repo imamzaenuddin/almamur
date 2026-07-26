@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getProfilMasjid, getPengurusDkm } from '../lib/db';
+
+const profil = await getProfilMasjid();
+const pengurus = await getPengurusDkm();
+---
+<Layout title={`Profil - ${profil?.nama_masjid || "Masjid Al-Ma'mur"}`} description={profil?.sejarah?.substring(0, 150) || "Profil Masjid"}>
+    <div class="max-w-4xl mx-auto px-4 lg:px-8 py-12">
+        <h1 class="text-3xl lg:text-4xl font-bold text-slate-800 mb-6 text-center">{profil?.nama_masjid || "Masjid Jami' Al-Ma'mur"}</h1>
+        
+        <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 mb-12">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4 border-b pb-2">Sejarah Singkat</h2>
+            <div class="prose max-w-none text-slate-600 leading-relaxed text-justify" set:html={profil?.sejarah || "<p>Belum ada informasi sejarah.</p>"}>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-16">
+            <div class="bg-emerald-50 rounded-3xl p-8 border border-emerald-100 hover:shadow-md transition-shadow">
+                <h2 class="text-xl font-bold text-emerald-800 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    Visi
+                </h2>
+                <div class="text-emerald-700 leading-relaxed prose prose-emerald max-w-none" set:html={profil?.visi || "<p>Belum ada visi.</p>"}>
+                </div>
+            </div>
+            <div class="bg-blue-50 rounded-3xl p-8 border border-blue-100 hover:shadow-md transition-shadow">
+                <h2 class="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    Misi
+                </h2>
+                <div class="text-blue-700 leading-relaxed prose prose-blue max-w-none" set:html={profil?.misi || "<p>Belum ada misi.</p>"}>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-3xl font-bold text-slate-800 mb-8 text-center">Susunan Pengurus DKM</h2>
+        
+        {pengurus.length > 0 ? (
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {pengurus.map((p) => (
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 text-center hover:-translate-y-2 hover:shadow-lg transition-all duration-300">
+                        <div class="w-24 h-24 mx-auto bg-slate-100 rounded-full overflow-hidden mb-4 ring-4 ring-slate-50 shadow-inner">
+                            <img src={p.foto_url || '/images/user-placeholder.png'} alt={p.nama} class="w-full h-full object-cover" />
+                        </div>
+                        <h3 class="font-bold text-slate-800 leading-tight mb-1">{p.nama}</h3>
+                        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">{p.jabatan}</p>
+                    </div>
+                ))}
+            </div>
+        ) : (
+            <div class="text-center py-10 bg-slate-50 rounded-2xl border border-slate-100 text-slate-500">Belum ada data pengurus DKM.</div>
+        )}
+    </div>
+</Layout>

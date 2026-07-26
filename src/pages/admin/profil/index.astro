@@ -1,0 +1,96 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { pool } from '../../../lib/db';
+
+const [[profil]] = await pool.query("SELECT * FROM profil_masjid LIMIT 1");
+---
+<AdminLayout title="Profil Masjid">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">Manajemen Profil Masjid</h1>
+        <p class="text-slate-500 text-sm mt-1">Perbarui informasi, sejarah, visi, dan misi masjid.</p>
+    </div>
+
+    <form id="formProfil" class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Masjid</label>
+                <input type="text" name="nama_masjid" value={profil?.nama_masjid || ''} required class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Telepon</label>
+                <input type="text" name="telepon" value={profil?.telepon || ''} class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                <input type="email" name="email" value={profil?.email || ''} class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Link Google Maps</label>
+                <input type="text" name="google_maps_link" value={profil?.google_maps_link || ''} class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">URL Logo (Opsional)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="logo_url" name="logo_url" value={profil?.logo_url || ''} placeholder="Misal: /images/logo.png" class="flex-grow px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">
+                    <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg cursor-pointer flex items-center transition">
+                        Upload
+                        <input type="file" class="hidden" accept="image/*" onchange="uploadImage(this, 'logo_url')">
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">URL Gambar Utama / Hero</label>
+                <div class="flex gap-2">
+                    <input type="text" id="default_image_url" name="default_image_url" value={profil?.default_image_url || ''} placeholder="Misal: /images/hero-bg.png" class="flex-grow px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">
+                    <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg cursor-pointer flex items-center transition">
+                        Upload
+                        <input type="file" class="hidden" accept="image/*" onchange="uploadImage(this, 'default_image_url')">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
+            <textarea name="alamat" rows="2" required class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">{profil?.alamat || ''}</textarea>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Visi</label>
+                <textarea name="visi" rows="4" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">{profil?.visi || ''}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Misi</label>
+                <textarea name="misi" rows="4" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">{profil?.misi || ''}</textarea>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Sejarah Singkat</label>
+            <textarea name="sejarah" rows="6" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none transition">{profil?.sejarah || ''}</textarea>
+        </div>
+
+        <button type="submit" id="btnSubmit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg transition shadow-md">Simpan Perubahan</button>
+    </form>
+
+    <script is:inline>
+        document.getElementById('formProfil').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            const originalText = btn.innerText;
+            btn.innerText = 'Menyimpan...';
+            
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/profil', { method: 'POST', body: formData });
+                if(res.ok) alert('Profil berhasil disimpan!');
+                else alert('Gagal menyimpan profil.');
+            } catch(err) {
+                alert('Terjadi kesalahan koneksi.');
+            } finally {
+                btn.innerText = originalText;
+            }
+        });
+    </script>
+</AdminLayout>

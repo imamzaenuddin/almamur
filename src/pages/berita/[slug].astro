@@ -1,0 +1,114 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getBeritaBySlug, incrementViews } from '../../lib/db';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+if (!slug) {
+	return Astro.redirect('/404');
+}
+
+const berita = await getBeritaBySlug(slug);
+
+if (!berita) {
+	return Astro.redirect('/404');
+}
+
+// Increment views on every visit
+await incrementViews(berita.id);
+---
+
+<Layout 
+	title={berita.meta_title || `${berita.judul} - Masjid Al-Ma'mur`} 
+	description={berita.meta_description || berita.ringkasan}
+	keywords={berita.meta_keywords || "masjid al-mamur, berita masjid, kajian"}
+>
+	<div class="max-w-4xl mx-auto mb-8">
+		<!-- Breadcrumb -->
+		<nav class="flex text-sm text-slate-500 mb-6 font-medium" aria-label="Breadcrumb">
+			<ol class="inline-flex items-center space-x-1 md:space-x-3">
+				<li class="inline-flex items-center">
+					<a href="/" class="hover:text-emerald-600 transition-colors">Beranda</a>
+				</li>
+				<li>
+					<div class="flex items-center">
+						<svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+						</svg>
+						<a href={`/kategori/${berita.nama_kategori.toLowerCase()}`} class="ml-1 md:ml-2 hover:text-emerald-600 transition-colors">{berita.nama_kategori}</a>
+					</div>
+				</li>
+				<li aria-current="page">
+					<div class="flex items-center">
+						<svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+						</svg>
+						<span class="ml-1 md:ml-2 text-slate-400 truncate max-w-[150px] sm:max-w-xs">{berita.judul}</span>
+					</div>
+				</li>
+			</ol>
+		</nav>
+	</div>
+
+	<article class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
+		<div class="relative w-full h-72 md:h-[450px] overflow-hidden group">
+			<img src={berita.gambar_utama || "/images/placeholder.png"} alt={berita.judul} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+			<div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent"></div>
+			<div class="absolute bottom-6 left-6 md:bottom-10 md:left-10">
+				<span class="bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">
+					{berita.nama_kategori}
+				</span>
+			</div>
+		</div>
+		
+		<div class="p-8 md:p-12 lg:p-16">
+			<h1 class="text-3xl md:text-5xl font-extrabold mb-8 text-slate-900 leading-tight">
+				{berita.judul}
+			</h1>
+			
+			<div class="flex flex-wrap items-center gap-6 mb-10 pb-10 border-b border-slate-100">
+				<div class="flex items-center gap-4">
+					<div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+						{berita.penulis.charAt(0).toUpperCase()}
+					</div>
+					<div>
+						<p class="text-sm font-bold text-slate-900">{berita.penulis}</p>
+						<p class="text-xs text-slate-500 font-medium">Penulis Al-Ma'mur</p>
+					</div>
+				</div>
+				
+				<div class="hidden sm:block w-px h-10 bg-slate-200"></div>
+				
+				<div class="flex items-center gap-6 text-sm text-slate-500 font-medium">
+					<div class="flex items-center gap-2">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+						</svg>
+						{new Date(berita.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+					</div>
+					<div class="flex items-center gap-2">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+						</svg>
+						{berita.views + 1} views
+					</div>
+				</div>
+			</div>
+			
+			<div class="prose prose-emerald prose-lg md:prose-xl max-w-none text-slate-700 leading-relaxed prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-emerald-600 hover:prose-a:text-emerald-700 prose-img:rounded-2xl prose-img:shadow-lg" set:html={berita.isi_konten}>
+			</div>
+			
+			<div class="mt-16 pt-8 border-t border-slate-100 flex justify-center">
+				<a href="/" class="inline-flex items-center gap-2 px-6 py-3 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 font-semibold rounded-full transition-colors">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+					</svg>
+					Kembali ke Beranda
+				</a>
+			</div>
+		</div>
+	</article>
+</Layout>

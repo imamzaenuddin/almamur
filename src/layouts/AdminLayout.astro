@@ -1,0 +1,90 @@
+---
+import '../styles/global.css';
+import { pool } from '../lib/db';
+
+const { title } = Astro.props;
+const user = Astro.locals.user;
+
+const [[profil]] = await pool.query('SELECT nama_masjid, logo_url FROM profil_masjid LIMIT 1');
+const masjidName = profil?.nama_masjid || "Al-Ma'mur";
+---
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href={profil?.logo_url || "/favicon.svg"} />
+    <title>{title} - {masjidName} Admin</title>
+</head>
+<body class="bg-slate-50 flex h-screen font-sans">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shadow-xl">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold text-emerald-400 truncate">{masjidName}</h2>
+            <p class="text-xs text-slate-400 mt-1">Sistem Manajemen Konten</p>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+            <a href="/admin" class="block px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition">Dashboard</a>
+            <a href="/admin/berita" class="block px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition">Berita & Konten</a>
+            <a href="/admin/tiktok" class="block px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition">TikTok Slider</a>
+            <a href="/admin/galeri" class="block px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition">Galeri Foto</a>
+            <a href="/admin/profil" class="block px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition">Profil Masjid</a>
+            <a href="/admin/pengurus" class="block px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition">Pengurus DKM</a>
+            {user?.role === 'admin' && (
+                <a href="/admin/users" class="block px-4 py-2.5 rounded-lg text-sm font-medium text-amber-300 hover:bg-slate-800 transition mt-4">Manajemen User</a>
+            )}
+        </nav>
+        <div class="p-5 border-t border-slate-800 bg-slate-950/50">
+            <div class="mb-4">
+                <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Login sebagai:</p>
+                <p class="font-bold text-sm truncate">{user?.nama}</p>
+                <p class="text-[10px] text-emerald-400 uppercase mt-0.5 border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block">{user?.role}</p>
+            </div>
+            <button onclick="logout()" class="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/50 text-sm font-medium py-2 rounded-lg transition-colors">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-10">
+        <slot />
+    </main>
+
+    <script is:inline>
+        async function logout() {
+            if(confirm('Yakin ingin logout dari sistem?')) {
+                try {
+                    await fetch('/api/auth/logout', { method: 'POST' });
+                    window.location.href = '/admin/login';
+                } catch (e) {
+                    console.error('Logout failed', e);
+                }
+            }
+        }
+
+        async function uploadImage(input, targetInputId) {
+            if (!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const targetInput = document.getElementById(targetInputId);
+            const originalVal = targetInput.value;
+            targetInput.value = 'Mengunggah...';
+            
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    targetInput.value = result.url;
+                } else {
+                    targetInput.value = originalVal;
+                    alert('Gagal upload: ' + (result.error || 'Terjadi kesalahan'));
+                }
+            } catch (e) {
+                targetInput.value = originalVal;
+                alert('Terjadi kesalahan jaringan.');
+            }
+        }
+    </script>
+</body>
+</html>

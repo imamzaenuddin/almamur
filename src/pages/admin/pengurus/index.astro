@@ -1,0 +1,120 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { pool } from '../../../lib/db';
+
+const [pengurus] = await pool.query("SELECT * FROM pengurus_dkm ORDER BY urutan ASC, id ASC");
+---
+<AdminLayout title="Manajemen Pengurus DKM">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Struktur Pengurus DKM</h1>
+            <p class="text-slate-500 text-sm mt-1">Kelola data pengurus masjid Al-Ma'mur.</p>
+        </div>
+        <button onclick="bukaModalTambah()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-md transition flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+            Tambah Pengurus
+        </button>
+    </div>
+
+    {pengurus.length === 0 ? (
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-12 text-center">
+            <p class="text-slate-500">Belum ada data pengurus DKM.</p>
+        </div>
+    ) : (
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {pengurus.map((item) => (
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 text-center group">
+                    <div class="w-24 h-24 mx-auto bg-slate-200 rounded-full overflow-hidden mb-4 border-4 border-slate-50">
+                        <img src={item.foto_url || '/images/user-placeholder.png'} alt={item.nama} class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-1">{item.nama}</h3>
+                    <p class="text-sm font-medium text-emerald-600 mb-4">{item.jabatan}</p>
+                    <div class="text-xs text-slate-400 mb-4 border-t border-slate-100 pt-3">Urutan: {item.urutan}</div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick={`editPengurus(${JSON.stringify(item)})`} class="w-full py-2 bg-amber-50 hover:bg-amber-500 text-amber-500 hover:text-white rounded-lg transition text-sm font-medium">Edit</button>
+                        <button onclick={`hapusPengurus(${item.id})`} class="w-full py-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition text-sm font-medium">Hapus</button>
+                    </div>
+                </div>
+            ))}
+        </div>
+    )}
+
+    <!-- Modal Tambah -->
+    <div id="modalTambah" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md border border-slate-100">
+            <div class="flex justify-between items-center mb-5">
+                <h2 id="modalTitle" class="text-xl font-bold text-slate-800">Tambah Pengurus</h2>
+                <button onclick="document.getElementById('modalTambah').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <form id="formTambahPengurus" class="space-y-4">
+                <input type="hidden" name="id" id="formId">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
+                    <input type="text" name="nama" required class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Jabatan (Mis: Ketua DKM)</label>
+                    <input type="text" name="jabatan" required class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">URL Foto (Opsional)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="foto_url" name="foto_url" class="flex-grow px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none">
+                        <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg cursor-pointer flex items-center transition whitespace-nowrap">
+                            Upload
+                            <input type="file" class="hidden" accept="image/*" onchange="uploadImage(this, 'foto_url')">
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nomor Urut Tampil (1, 2, 3...)</label>
+                    <input type="number" name="urutan" value="0" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-emerald-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition mt-6 shadow-md">Simpan Data</button>
+            </form>
+        </div>
+    </div>
+
+    <script is:inline>
+        function bukaModalTambah() {
+            document.getElementById('modalTitle').innerText = 'Tambah Pengurus';
+            document.getElementById('formId').value = '';
+            document.getElementById('formTambahPengurus').reset();
+            document.getElementById('modalTambah').classList.remove('hidden');
+        }
+
+        function editPengurus(item) {
+            document.getElementById('modalTitle').innerText = 'Edit Pengurus';
+            document.getElementById('formId').value = item.id;
+            document.getElementById('formTambahPengurus').elements['nama'].value = item.nama;
+            document.getElementById('formTambahPengurus').elements['jabatan'].value = item.jabatan;
+            document.getElementById('formTambahPengurus').elements['foto_url'].value = item.foto_url || '';
+            document.getElementById('formTambahPengurus').elements['urutan'].value = item.urutan || 0;
+            document.getElementById('modalTambah').classList.remove('hidden');
+        }
+
+        document.getElementById('formTambahPengurus').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch('/api/pengurus', { method: 'POST', body: formData });
+                if(res.ok) window.location.reload();
+                else alert('Gagal menambah pengurus');
+            } catch(err) {
+                alert('Terjadi kesalahan koneksi.');
+            }
+        });
+
+        async function hapusPengurus(id) {
+            if(confirm('Hapus pengurus ini?')) {
+                try {
+                    const res = await fetch(`/api/pengurus?id=${id}`, { method: 'DELETE' });
+                    if(res.ok) window.location.reload();
+                } catch(err) {
+                    alert('Terjadi kesalahan koneksi.');
+                }
+            }
+        }
+    </script>
+</AdminLayout>

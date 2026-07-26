@@ -1,0 +1,69 @@
+---
+import '../../styles/global.css';
+
+if (Astro.cookies.has('admin_session')) {
+    return Astro.redirect('/admin');
+}
+---
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Admin - Masjid Al-Ma'mur</title>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen font-sans">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">Login Pengurus</h1>
+            <p class="text-slate-500 mt-1">Sistem Manajemen Masjid Al-Ma'mur</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                <input type="email" name="email" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Password</label>
+                <input type="password" name="password" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+            </div>
+            <div id="errorMsg" class="text-red-500 text-sm hidden text-center bg-red-50 py-2 rounded-md"></div>
+            <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-lg hover:bg-emerald-700 transition shadow-md">
+                Masuk ke Dasbor
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const errorMsg = document.getElementById('errorMsg');
+            
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    window.location.href = '/admin';
+                } else {
+                    errorMsg.textContent = data.error || 'Login gagal';
+                    errorMsg.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Terjadi kesalahan sistem';
+                errorMsg.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

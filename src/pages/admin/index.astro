@@ -1,0 +1,58 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { pool } from '../../lib/db';
+
+const [[{total_berita}]] = await pool.query("SELECT COUNT(*) as total_berita FROM berita");
+const [[{total_kategori}]] = await pool.query("SELECT COUNT(*) as total_kategori FROM kategori");
+const [[{total_galeri}]] = await pool.query("SELECT COUNT(*) as total_galeri FROM galeri");
+const [[{total_users}]] = await pool.query("SELECT COUNT(*) as total_users FROM users");
+---
+
+<AdminLayout title="Dashboard">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-800">Dashboard</h1>
+        <p class="text-slate-500 mt-2">Selamat datang di Sistem Manajemen Konten Masjid Al-Ma'mur.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition">
+            <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H14" /></svg>
+            </div>
+            <div>
+                <p class="text-slate-500 text-sm font-medium">Total Berita</p>
+                <p class="text-3xl font-bold text-slate-800">{total_berita}</p>
+            </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition">
+            <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+            </div>
+            <div>
+                <p class="text-slate-500 text-sm font-medium">Kategori</p>
+                <p class="text-3xl font-bold text-slate-800">{total_kategori}</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition">
+            <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </div>
+            <div>
+                <p class="text-slate-500 text-sm font-medium">Foto Galeri</p>
+                <p class="text-3xl font-bold text-slate-800">{total_galeri}</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition">
+            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            </div>
+            <div>
+                <p class="text-slate-500 text-sm font-medium">Pengguna</p>
+                <p class="text-3xl font-bold text-slate-800">{total_users}</p>
+            </div>
+        </div>
+    </div>
+</AdminLayout>
